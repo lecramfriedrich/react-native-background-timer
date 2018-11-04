@@ -19,6 +19,7 @@ class BackgroundTimer {
 			if (this.callbacks[id]) {
 				const callback = this.callbacks[id].callback;
 				if (!this.callbacks[id].interval) {
+					console.log('execute', Date.now(), this.callbacks[id].timestamp, Date.now() - this.callbacks[id].timestamp);
 					delete this.callbacks[id];
 				}
 				else {
@@ -30,8 +31,8 @@ class BackgroundTimer {
 	}
 
 	// Original API
-	start(delay=0) {
-		return RNBackgroundTimer.start(delay);
+	start() {
+		return RNBackgroundTimer.start();
 	}
 
 	stop() {
@@ -39,39 +40,42 @@ class BackgroundTimer {
 	}
 
 	runBackgroundTimer = (callback, delay) => {
-	  const EventEmitter = Platform.select({
-	    ios: () => NativeAppEventEmitter,
-	    android: () => DeviceEventEmitter,
-	  })();
-	  this.start(0);
-	  this.backgroundListener = EventEmitter.addListener('backgroundTimer', () => {
-	  	this.backgroundListener.remove();
-	    this.backgroundClockMethod(callback, delay)
-	  });
+		const EventEmitter = Platform.select({
+			ios: () => NativeAppEventEmitter,
+			android: () => DeviceEventEmitter,
+		})();
+		this.start(0);
+		this.backgroundListener = EventEmitter.addListener('backgroundTimer', () => {
+			this.backgroundListener.remove();
+			this.backgroundClockMethod(callback, delay)
+		});
 	};
 
 	backgroundClockMethod(callback, delay) {
 		this.backgroundTimer = setTimeout(() => {
-	    	callback();
-	    	this.backgroundClockMethod(callback, delay);
-	    }, 
-	    delay);
+			callback();
+			this.backgroundClockMethod(callback, delay);
+		},
+			delay);
 	}
 
 	stopBackgroundTimer = () => {
-	  this.stop();
-	  clearTimeout(this.backgroundTimer);
+		this.stop();
+		clearTimeout(this.backgroundTimer);
 	};
 
 	// New API, allowing for multiple timers
-	setTimeout(callback, timeout) {
+	setTimeout(callback, timestamp) {
 		const timeoutId = ++this.uniqueId;
 		this.callbacks[timeoutId] = {
 			callback: callback,
 			interval: false,
-			timeout: timeout
+			timestamp: timestamp
 		};
-		RNBackgroundTimer.setTimeout(timeoutId, timeout);
+		const time = timestamp - Date.now();
+		if (time > 0) {
+			RNBackgroundTimer.setTimeout(timeoutId, time);
+		}
 		return timeoutId;
 	}
 

@@ -27,7 +27,7 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
     }
 
     @ReactMethod
-    public void start(final int delay) {
+    public void start() {
         handler = new Handler();
         runnable = new Runnable() {
             @Override
