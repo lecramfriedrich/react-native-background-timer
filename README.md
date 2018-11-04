@@ -27,6 +27,8 @@ BackgroundTimer.stopBackgroundTimer(); //after this call all code on background 
 After iOS update logic of background task little bit changed. So we can't use as it was. 
 You have to use only start() and stop() without parameters. And all code that is performing will continue performing on background including all setTimeout() timers.
 
+Put blank.wav in your ios project root
+
 Example:
 ```javascript
 BackgroundTimer.start();

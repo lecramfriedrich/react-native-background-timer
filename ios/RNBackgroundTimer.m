@@ -84,7 +84,7 @@ RCT_EXPORT_MODULE()
 }
 
 void playAudio() {
-  NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:@"start"  ofType:@"mp3"];
+  NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:@"blank"  ofType:@"wav"];
   NSURL *soundFileURL = [NSURL fileURLWithPath:soundFilePath];
   AVAudioSession *session = [AVAudioSession sharedInstance];
   [session setCategory: AVAudioSessionCategoryPlayback
