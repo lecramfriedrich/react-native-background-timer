@@ -1,7 +1,9 @@
 package com.ocetnik.timer;
 
 import android.os.Handler;
+import android.os.PowerManager;
 
+import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -15,10 +17,30 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
     private Handler handler;
     private ReactContext reactContext;
     private Runnable runnable;
+    private PowerManager powerManager;
+    private PowerManager.WakeLock wakeLock;
+    private final LifecycleEventListener listener = new LifecycleEventListener(){
+        @Override
+        public void onHostResume() {
+            wakeLock.acquire();
+        }
+        @Override
+        public void onHostPause() {
+            //wakeLock.release();
+        }
+
+        @Override
+        public void onHostDestroy() {
+            if (wakeLock.isHeld()) wakeLock.release();
+        }
+    };
 
     public BackgroundTimerModule(ReactApplicationContext reactContext) {
         super(reactContext);
         this.reactContext = reactContext;
+        this.powerManager = (PowerManager) getReactApplicationContext().getSystemService(reactContext.POWER_SERVICE);
+        this.wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "rohit_bg_wakelock");
+        reactContext.addLifecycleEventListener(listener);
     }
 
     @Override
@@ -28,6 +50,7 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void start() {
+		wakeLock.acquire();
         handler = new Handler();
         runnable = new Runnable() {
             @Override
@@ -41,6 +64,7 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void stop() {
+		if (wakeLock.isHeld()) wakeLock.release();
         // avoid null pointer exceptio when stop is called without start
         if (handler != null) handler.removeCallbacks(runnable);
     }
@@ -65,10 +89,4 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
            }
         }, timeout);
     }
-
-    /*@ReactMethod
-    public void clearTimeout(final int id) {
-        // todo one day..
-        // not really neccessary to have
-    }*/
 }

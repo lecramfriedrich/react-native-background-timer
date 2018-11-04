@@ -18,6 +18,7 @@
 AVAudioPlayer *audioPlayer;
 UIBackgroundTaskIdentifier backgroundTask;
 NSTimer *timer;
+bool started = false;
 
 RCT_EXPORT_MODULE()
 
@@ -25,6 +26,7 @@ RCT_EXPORT_MODULE()
 
 - (void) _start
 {
+    started = true;
     AVAudioSession *aSession = [AVAudioSession sharedInstance];
     [aSession setCategory:AVAudioSessionCategoryPlayback
               withOptions:AVAudioSessionCategoryOptionAllowBluetooth
@@ -75,7 +77,8 @@ RCT_EXPORT_MODULE()
               // • AVAudioSessionInterruptionOptionShouldResume option
               if (interruptionOption.unsignedIntegerValue == AVAudioSessionInterruptionOptionShouldResume) {
                   // Here you should continue playback.
-                  playAudio();
+                  
+				  playAudio();
               }
           } break;
           default:
@@ -84,7 +87,10 @@ RCT_EXPORT_MODULE()
 }
 
 void playAudio() {
-  NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:@"blank"  ofType:@"wav"];
+  if (!started) {
+    return;
+  }
+  NSString *soundFilePath = [[NSBundle mainBundle] pathForResource:@"start"  ofType:@"mp3"];
   NSURL *soundFileURL = [NSURL fileURLWithPath:soundFilePath];
   AVAudioSession *session = [AVAudioSession sharedInstance];
   [session setCategory: AVAudioSessionCategoryPlayback
@@ -98,6 +104,7 @@ void playAudio() {
 
 - (void) _stop
 {
+    started = false;
   //[[NSNotificationCenter defaultCenter] removeObserver:self];
     if (timer != nil) {
         timer.invalidate;
@@ -106,7 +113,7 @@ void playAudio() {
     if (audioPlayer != nil) {
         audioPlayer.stop;
     }
-  timer = nil;
+    timer = nil;
     audioPlayer = nil;
 }
 
