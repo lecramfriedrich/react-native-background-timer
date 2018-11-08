@@ -41,7 +41,6 @@ public class BackgroundTimerModule extends ReactContextBaseJavaModule {
 
     @ReactMethod
     public void stop() {
-		if (wakeLock.isHeld()) wakeLock.release();
         // avoid null pointer exceptio when stop is called without start
         if (handler != null) handler.removeCallbacks(runnable);
     }
