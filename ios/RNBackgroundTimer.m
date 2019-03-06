@@ -37,7 +37,7 @@ RCT_EXPORT_MODULE()
   [[NSNotificationCenter defaultCenter] addObserver:self
                                            selector:@selector(handleAudioSessionInterruption:)
                                                name:AVAudioSessionInterruptionNotification
-                                             object:aSession];
+                                             object:[AVAudioSession sharedInstance]];
   backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"bgTask" expirationHandler:^{
     // Clean up any unfinished task business by marking where you
     // stopped or ending the task outright.
