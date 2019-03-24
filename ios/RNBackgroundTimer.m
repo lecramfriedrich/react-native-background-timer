@@ -34,10 +34,7 @@ RCT_EXPORT_MODULE()
     [aSession setMode:AVAudioSessionModeDefault error:nil];
     [aSession setActive: YES error: nil];
     playAudio();
-  [[NSNotificationCenter defaultCenter] addObserver:self
-                                           selector:@selector(handleAudioSessionInterruption:)
-                                               name:AVAudioSessionInterruptionNotification
-                                             object:[AVAudioSession sharedInstance]];
+  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(audioSessionChangeObserver:) name:AVAudioSessionRouteChangeNotification object:nil];
   backgroundTask = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"bgTask" expirationHandler:^{
     // Clean up any unfinished task business by marking where you
     // stopped or ending the task outright.
@@ -62,28 +59,18 @@ RCT_EXPORT_MODULE()
   }];
 }
 
-- (void) handleAudioSessionInterruption:(NSNotification *) notification
+- (void) audioSessionChangeObserver:(NSNotification *) notification
 {
-    NSNumber *interruptionType = [[notification userInfo] objectForKey:AVAudioSessionInterruptionTypeKey];
-    NSNumber *interruptionOption = [[notification userInfo] objectForKey:AVAudioSessionInterruptionOptionKey];
-      switch (interruptionType.unsignedIntegerValue) {
-          case AVAudioSessionInterruptionTypeBegan:{
-              // • Audio has stopped, already inactive
-              // • Change state of UI, etc., to reflect non-playing state
-          } break;
-          case AVAudioSessionInterruptionTypeEnded:{
-              // • Make session active
-              // • Update user interface
-              // • AVAudioSessionInterruptionOptionShouldResume option
-              if (interruptionOption.unsignedIntegerValue == AVAudioSessionInterruptionOptionShouldResume) {
-                  // Here you should continue playback.
-                  
-				  playAudio();
-              }
-          } break;
-          default:
-              break;
-      }
+	NSDictionary* userInfo = notification.userInfo;
+    AVAudioSessionRouteChangeReason audioSessionRouteChangeReason = [userInfo[@"AVAudioSessionRouteChangeReasonKey"] longValue];
+    AVAudioSessionInterruptionType audioSessionInterruptionType   = [userInfo[@"AVAudioSessionInterruptionTypeKey"] longValue];
+
+	if (audioSessionRouteChangeReason == AVAudioSessionRouteChangeReasonNewDeviceAvailable){
+        playAudio();
+    }
+    if (audioSessionInterruptionType == AVAudioSessionInterruptionTypeEnded){
+        playAudio();
+    }
 }
 
 void playAudio() {
